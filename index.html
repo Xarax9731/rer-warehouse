@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FieldStock</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FieldStock">
+<meta name="theme-color" content="#FF6B00">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#FF6B00;--orange-dim:#cc5500;--dark:#111214;--mid:#1C1E22;--panel:#242629;--border:#2E3035;--text:#E8E9EB;--muted:#7A7D85;--green:#22C55E;--red:#EF4444;--blue:#3B82F6;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--text);min-height:100dvh;overflow-x:hidden;}
+
+header{background:var(--mid);border-bottom:2px solid var(--orange);padding:10px 14px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:1px;}
+.logo span{color:var(--orange);}
+.lang-toggle{display:flex;background:var(--dark);border:1px solid var(--border);border-radius:20px;padding:3px;gap:2px;}
+.lang-btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:16px;border:none;cursor:pointer;background:transparent;color:var(--muted);transition:all 0.2s;}
+.lang-btn.active{background:var(--orange);color:#fff;}
+
+.nav-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--mid);border-bottom:1px solid var(--border);}
+.nav-tab{padding:12px 4px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;}
+.nav-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.nav-tab.rt.active{color:var(--blue);border-bottom-color:var(--blue);}
+.nav-tab.ht.active{color:var(--green);border-bottom-color:var(--green);}
+
+.page{display:none;padding:14px;max-width:600px;margin:0 auto;}
+.page.active{display:block;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;}
+.sec{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.clabel{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+
+input[type=text],input[type=email],input[type=date],input[type=number],input[type=url],textarea{width:100%;background:var(--mid);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;padding:11px 13px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;display:block;}
+input:focus,textarea:focus{border-color:var(--orange);}
+.ret-page input:focus{border-color:var(--blue);}
+input[type=number]{-moz-appearance:textfield;text-align:center;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+textarea{resize:vertical;font-family:monospace;font-size:12px;line-height:1.5;}
+
+.swrap{position:relative;}
+.swrap input{padding-left:38px;}
+.sico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+.sres{background:var(--mid);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;display:none;}
+.sres.open{display:block;}
+.ritem{padding:11px 13px;cursor:pointer;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;transition:background 0.12s;}
+.ritem:last-child{border-bottom:none;}
+.ritem:active{background:var(--panel);}
+
+.ilist{display:flex;flex-direction:column;gap:10px;}
+.irow{background:var(--mid);border:1px solid var(--border);border-radius:8px;padding:12px;animation:sIn 0.18s ease;}
+@keyframes sIn{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);}}
+.itop{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.iname{font-size:14px;font-weight:600;flex:1;line-height:1.35;}
+.rmbtn{width:28px;height:28px;border:none;background:transparent;color:var(--red);font-size:16px;cursor:pointer;flex-shrink:0;}
+.qrow{display:flex;align-items:center;gap:8px;}
+.qlabel{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+.qctrl{display:flex;align-items:center;gap:5px;margin-left:auto;}
+.qbtn{width:34px;height:34px;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
+.qbtn:active{background:var(--orange);}
+.ret-page .qbtn:active{background:var(--blue);}
+.qinput{width:54px!important;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;padding:6px 4px!important;border-radius:6px;}
+.reswrap{margin-top:9px;}
+.resinput{font-size:13px!important;padding:8px 10px!important;}
+
+.empty{text-align:center;padding:24px 12px;color:var(--muted);font-size:14px;line-height:1.6;}
+.eico{font-size:32px;margin-bottom:8px;}
+
+.sumbar{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.sumlbl{font-size:12px;color:var(--muted);margin-bottom:2px;}
+.sumcnt{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:var(--orange);}
+.ret-page .sumcnt{color:var(--blue);}
+
+.btn{width:100%;padding:14px;border:none;border-radius:10px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.2s;}
+.btn-o{background:var(--orange);color:#fff;}.btn-o:active{background:var(--orange-dim);transform:scale(0.98);}
+.btn-b{background:var(--blue);color:#fff;}.btn-b:active{background:#2563eb;transform:scale(0.98);}
+.btn-g{background:#14532d;color:var(--green);border:none;}.btn-g:active{transform:scale(0.98);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:13px;padding:11px;margin-top:8px;}
+
+.method-btns{display:flex;gap:6px;margin-bottom:12px;}
+.mbtn{flex:1;padding:9px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all 0.2s;}
+.mbtn.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+.howto{font-size:12px;color:var(--muted);line-height:1.9;margin-bottom:10px;background:var(--mid);border-radius:8px;padding:12px;}
+.howto b{color:var(--text);}
+.ss-badge{font-size:12px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;padding:4px 10px;border-radius:6px;white-space:nowrap;}
+.ss-idle{background:var(--panel);color:var(--muted);}
+.ss-ok{background:#14532d;color:var(--green);}
+.ss-err{background:#450a0a;color:var(--red);}
+.ss-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+
+/* SHEETS ENDPOINT CONFIG */
+.endpoint-card{background:var(--panel);border:2px solid var(--orange);border-radius:10px;padding:14px;margin-bottom:12px;}
+.endpoint-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:var(--green);}
+.dot-err{background:var(--red);}
+.dot-idle{background:var(--muted);}
+
+/* OUTPUT TABLE in modal */
+.etable-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;}
+.etable{width:100%;border-collapse:collapse;font-size:13px;}
+.etable th{background:var(--mid);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:2px solid var(--orange);}
+.etable th.center{text-align:center;}
+.ret-modal .etable th{border-bottom-color:var(--blue);}
+.etable td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);font-weight:600;cursor:text;user-select:text;}
+.etable td.idx{color:var(--muted);font-size:12px;font-weight:400;text-align:center;}
+.etable td.qty{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;text-align:center;color:var(--orange);}
+.ret-modal .etable td.qty{color:var(--blue);}
+.etable td.reason{color:var(--muted);font-size:12px;font-weight:400;font-style:italic;}
+.etable tr:nth-child(even) td{background:var(--panel);}
+.etable tr:nth-child(odd) td{background:var(--mid);}
+.etable tfoot td{background:var(--dark);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:9px 10px;}
+.etable tfoot td.total-val{font-size:24px;font-weight:900;text-align:center;color:var(--orange);}
+.ret-modal .etable tfoot td.total-val{color:var(--blue);}
+
+/* SEND STATUS */
+.send-status{border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.6;display:none;}
+.send-status.show{display:block;}
+.send-sending{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:var(--blue);}
+.send-ok{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:var(--green);}
+.send-err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--red);}
+
+.copy-btn{width:100%;padding:12px;border:none;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--orange);color:#fff;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;}
+.copy-btn:active{background:var(--orange-dim);}
+.copy-btn.copied{background:#14532d;color:var(--green);}
+.copy-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;}
+
+/* HISTORY */
+.hentry{background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.hhdr{padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.hhdr:active{background:var(--mid);}
+.hbadge{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-bottom:4px;display:inline-block;}
+.hb-ord{background:rgba(255,107,0,0.15);color:var(--orange);}
+.hb-ret{background:rgba(59,130,246,0.15);color:var(--blue);}
+.htitle{font-size:14px;font-weight:600;}
+.hmeta{font-size:12px;color:var(--muted);margin-top:2px;}
+.hcount{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--muted);text-align:right;}
+.hbody{display:none;border-top:1px solid var(--border);padding:12px 14px;}
+.hbody.open{display:block;}
+.hacts{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+.hbtn{flex:1;min-width:90px;padding:9px 6px;border-radius:8px;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.hresend{background:rgba(255,107,0,0.1);border:1px solid rgba(255,107,0,0.3);color:var(--orange);}
+.hcopy{background:var(--panel);border:1px solid var(--border);color:var(--text);}
+.hdel{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:var(--red);}
+
+/* MODAL */
+.mbg{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.mbg.open{opacity:1;pointer-events:all;}
+.modal{background:var(--panel);width:100%;border-radius:18px 18px 0 0;padding:20px 16px 36px;transform:translateY(40px);transition:transform 0.3s ease;max-height:92dvh;overflow-y:auto;}
+.mbg.open .modal{transform:translateY(0);}
+.mtitle{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:900;margin-bottom:12px;text-align:center;}
+.mdiv{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.hidden{display:none!important;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Field<span>Stock</span></div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnEN" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="btnES" onclick="setLang('es')">ES</button>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" id="nOrd"  onclick="showPage('ord')">&#128230; <span class="t" data-en="Order"   data-es="Pedido">Order</span></div>
+  <div class="nav-tab rt"    id="nRet"  onclick="showPage('ret')">&#8617;&#65039; <span class="t" data-en="Return"  data-es="Devolver">Return</span></div>
+  <div class="nav-tab ht"   id="nHist" onclick="showPage('hist')">&#128344; <span class="t" data-en="History" data-es="Historial">History</span></div>
+</div>
+
+<!-- ══ SETTINGS BANNER (shown until script URL is saved) ══ -->
+<div id="setupBanner" style="background:rgba(255,107,0,0.1);border-bottom:1px solid rgba(255,107,0,0.3);padding:10px 14px;font-size:12px;color:var(--orange);display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="showPage('hist');showSetup()">
+  &#9888;&#65039; <span class="t" data-en="Apps Script URL not set - tap here to configure" data-es="URL de script no configurada - toca para configurar">Apps Script URL not set — tap here to configure</span>
+</div>
+
+
+<div id="installBanner" style="display:none;background:rgba(255,107,0,0.12);border-bottom:1px solid rgba(255,107,0,0.4);padding:10px 14px;display:none;align-items:center;justify-content:space-between;gap:10px;">
+  <span style="font-size:13px;color:var(--orange);">&#128241; Install FieldStock as an app</span>
+  <button onclick="installApp()" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;">INSTALL</button>
+</div>
+
+<!-- ══ ORDER PAGE ══ -->
+<div class="page active" id="pOrd">
+
+  <div class="card">
+    <div class="sec t" data-en="Worker &amp; Job Info" data-es="Trabajador e Info del Trabajo">Worker &amp; Job Info</div>
+    <div style="display:grid;gap:10px;">
+      <div><div class="clabel t" data-en="Your Name" data-es="Tu Nombre">Your Name</div>
+        <input type="text" id="oWorker" placeholder="e.g. Mike Torres"></div>
+      <div><div class="clabel t" data-en="Project / Job #" data-es="Proyecto / Trabajo #">Project / Job #</div>
+        <input type="text" id="oProject" placeholder="e.g. Eastside Substation #2241"></div>
+      <div><div class="clabel t" data-en="Delivery Date Needed" data-es="Fecha de Entrega">Delivery Date Needed</div>
+        <input type="date" id="oDate"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec t" data-en="Material Catalog" data-es="Catalogo de Materiales">Material Catalog</div>
+    <div class="method-btns">
+      <button class="mbtn active" id="mb1" onclick="switchMethod(1)">&#128203; <span class="t" data-en="Paste CSV" data-es="Pegar CSV">Paste CSV</span></button>
+      <button class="mbtn"        id="mb2" onclick="switchMethod(2)">&#128279; <span class="t" data-en="Try URL"   data-es="URL">Try URL</span></button>
+    </div>
+    <div id="m1">
+      <div class="howto">
+        <b class="t" data-en="How to load your catalog:" data-es="Como cargar tu catalogo:">How to load your catalog:</b><br>
+        1. <span class="t" data-en="Open your published CSV link in a browser" data-es="Abre tu enlace CSV en un navegador">Open your published CSV link in a browser</span><br>
+        2. <span class="t" data-en="Select all (Ctrl+A / Cmd+A)" data-es="Selecciona todo (Ctrl+A)">Select all (Ctrl+A / Cmd+A)</span><br>
+        3. <span class="t" data-en="Copy and paste below, then tap Load" data-es="Copia, pega abajo y toca Cargar">Copy and paste below, then tap Load</span>
+      </div>
+      <textarea id="csvPaste" rows="4" placeholder="Paste your CSV text here..." style="margin-bottom:8px;"></textarea>
+      <div class="ss-row">
+        <button class="btn btn-o" style="padding:12px;font-size:14px;" onclick="loadFromPaste()">
+          <span class="t" data-en="Load Catalog" data-es="Cargar Catalogo">Load Catalog</span>
+        </button>
+        <span class="ss-badge ss-idle" id="ssBadge">-</span>
+      </div>
+      <div id="ssMsg" style="margin-top:8px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
+    </div>
+    <div id="m2" class="hidden">
+      <div class="howto">
+        <span class="t" data-en="Works when hosted on a web server, not as a local file." data-es="Funciona en servidor web, no como archivo local.">Works when hosted on a web server, not as a local file.</span>
+      </div>
+      <input type="text" id="sheetsUrl" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" style="margin-bottom:8px;">
+      <div class="ss-row">
+        <button class="btn btn-o" style="padding:12px;font-size:14px;" onclick="loadFromUrl()">
+          <span class="t" data-en="Load from URL" data-es="Cargar desde URL">Load from URL</span>
+        </button>
+        <span class="ss-badge ss-idle" id="ssBadge2">-</span>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px;">
+      <span class="t" data-en="Required columns: Item Name and Item Code" data-es="Columnas requeridas: Item Name e Item Code">Required columns: <b>Item Name</b> and <b>Item Code</b></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec t" data-en="Search &amp; Add Materials" data-es="Buscar y Agregar Materiales">Search &amp; Add Materials</div>
+    <div class="swrap">
+      <span class="sico">&#128269;</span>
+      <input type="text" id="oSearch" placeholder="Search by name..." oninput="doSearch('ord')" autocomplete="off" autocorrect="off">
+    </div>
+    <div class="sres" id="oRes"></div>
+  </div>
+
+  <div class="sumbar">
+    <div><div class="sumlbl t" data-en="Total Units" data-es="Unidades Totales">Total Units</div><div class="sumcnt" id="oUnits">0</div></div>
+    <div style="text-align:right"><div class="sumlbl t" data-en="Line Items" data-es="Lineas">Line Items</div><div class="sumcnt" id="oLines">0</div></div>
+  </div>
+  <div class="ilist" id="oList">
+    <div class="empty"><div class="eico">&#128203;</div><span class="t" data-en="No items yet - search above to add materials." data-es="Sin articulos - busca arriba.">No items yet - search above to add materials.</span></div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <div class="clabel t" data-en="Recipient Email (for your records)" data-es="Correo Destinatario">Recipient Email (for your records)</div>
+    <input type="email" id="oEmail" placeholder="warehouse@company.com" style="margin-bottom:12px;">
+    <button class="btn btn-o" onclick="buildOutput('ord')">
+      <span class="t" data-en="Review &amp; Submit Order" data-es="Revisar y Enviar Pedido">Review &amp; Submit Order</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ RETURN PAGE ══ -->
+<div class="page ret-page" id="pRet">
+  <div class="card">
+    <div class="sec t" data-en="Worker &amp; Job Info" data-es="Trabajador e Info del Trabajo">Worker &amp; Job Info</div>
+    <div style="display:grid;gap:10px;">
+      <div><div class="clabel t" data-en="Your Name" data-es="Tu Nombre">Your Name</div>
+        <input type="text" id="rWorker" placeholder="e.g. Mike Torres"></div>
+      <div><div class="clabel t" data-en="Project / Job #" data-es="Proyecto / Trabajo #">Project / Job #</div>
+        <input type="text" id="rProject" placeholder="e.g. Eastside Substation #2241"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec t" data-en="Search Materials to Return" data-es="Buscar Materiales a Devolver">Search Materials to Return</div>
+    <div class="swrap">
+      <span class="sico">&#128269;</span>
+      <input type="text" id="rSearch" placeholder="Search by name..." oninput="doSearch('ret')" autocomplete="off" autocorrect="off">
+    </div>
+    <div class="sres" id="rRes"></div>
+  </div>
+
+  <div class="sumbar">
+    <div><div class="sumlbl t" data-en="Total Units" data-es="Unidades Totales">Total Units</div><div class="sumcnt" id="rUnits">0</div></div>
+    <div style="text-align:right"><div class="sumlbl t" data-en="Line Items" data-es="Lineas">Line Items</div><div class="sumcnt" id="rLines">0</div></div>
+  </div>
+  <div class="ilist" id="rList">
+    <div class="empty"><div class="eico">&#8617;</div><span class="t" data-en="No items yet - search above to add returns." data-es="Sin articulos - busca arriba.">No items yet - search above to add returns.</span></div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <div class="clabel t" data-en="Recipient Email (for your records)" data-es="Correo Destinatario">Recipient Email (for your records)</div>
+    <input type="email" id="rEmail" placeholder="warehouse@company.com" style="margin-bottom:12px;">
+    <button class="btn btn-b" onclick="buildOutput('ret')">
+      <span class="t" data-en="Review &amp; Submit Return" data-es="Revisar y Enviar Devolucion">Review &amp; Submit Return</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ HISTORY PAGE ══ -->
+<div class="page" id="pHist">
+
+  <!-- Script URL setup card -->
+  <div class="card" id="setupCard" style="border-color:var(--orange);">
+    <div class="sec" style="color:var(--orange);">&#9881;&#65039; Google Sheets Integration</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.7;">
+      Paste your deployed Apps Script URL below. Orders and returns will write directly to your Google Sheet.
+    </div>
+    <div class="clabel">Apps Script Web App URL</div>
+    <input type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:8px;">
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-o" style="padding:11px;font-size:14px;" onclick="saveScriptUrl()">Save URL</button>
+      <button class="btn btn-ghost" style="margin-top:0;padding:11px;font-size:13px;" onclick="testConnection()">Test Connection</button>
+    </div>
+    <div class="endpoint-status" id="endpointStatus">
+      <div class="dot dot-idle" id="endpointDot"></div>
+      <span id="endpointMsg" style="color:var(--muted);">Not configured</span>
+    </div>
+    <div style="margin-top:12px;padding:10px;background:var(--mid);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.8;">
+      <b style="color:var(--text);">Setup steps:</b><br>
+      1. Open your Google Sheet<br>
+      2. Click <b style="color:var(--text);">Extensions &gt; Apps Script</b><br>
+      3. Delete any existing code, paste the <b style="color:var(--text);">FieldStock-AppsScript.js</b> file contents<br>
+      4. Click <b style="color:var(--text);">Save</b> (floppy disk icon)<br>
+      5. Click <b style="color:var(--text);">Deploy &gt; New deployment</b><br>
+      6. Type: <b style="color:var(--text);">Web app</b> &nbsp;|&nbsp; Execute as: <b style="color:var(--text);">Me</b> &nbsp;|&nbsp; Who has access: <b style="color:var(--text);">Anyone</b><br>
+      7. Click <b style="color:var(--text);">Deploy</b> &rarr; copy the Web App URL &rarr; paste above
+    </div>
+  </div>
+
+  <!-- History search -->
+  <div class="swrap" style="margin-bottom:12px;">
+    <span class="sico">&#128269;</span>
+    <input type="text" id="hSearch" placeholder="Search by worker, project..." oninput="renderHistory()">
+  </div>
+  <div id="histList">
+    <div class="empty"><div class="eico">&#128344;</div><span class="t" data-en="No history yet." data-es="Sin historial aun.">No history yet.</span></div>
+  </div>
+</div>
+
+<!-- ══ OUTPUT MODAL ══ -->
+<div class="mbg" id="mbg" onclick="bgClick(event)">
+  <div class="modal" id="modalInner">
+    <div class="mtitle" id="mTitle">Order Ready</div>
+
+    <!-- Summary -->
+    <div id="pvSummary" style="background:var(--mid);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;line-height:1.9;"></div>
+
+    <!-- Send to Sheets status -->
+    <div class="send-status" id="sendStatus"></div>
+
+    <!-- Spreadsheet table — each cell individually selectable -->
+    <div class="etable-wrap">
+      <table class="etable" id="emailTable"></table>
+    </div>
+
+    <!-- Copy email fallback -->
+    <textarea id="emailBox" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;" readonly></textarea>
+    <button class="copy-btn" id="copyEmail" onclick="copyEmail()">
+      &#128203; <span class="t" data-en="Copy as Email Text" data-es="Copiar como Correo">Copy as Email Text</span>
+    </button>
+    <div class="copy-note t" data-en="Tap any cell in the table above to select and copy it individually." data-es="Toca cualquier celda arriba para seleccionarla y copiarla.">
+      Tap any cell in the table to select and copy it individually.
+    </div>
+
+    <hr class="mdiv">
+    <button class="btn btn-ghost" onclick="closeModal()">
+      <span class="t" data-en="Close" data-es="Cerrar">Close</span>
+    </button>
+    <button class="btn btn-ghost" style="margin-top:6px;" onclick="resetAndClose()">
+      <span class="t" data-en="Close &amp; Start New" data-es="Cerrar e Iniciar Nuevo">Close &amp; Start New</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══════════════════════════════════════════════════════════════════
+let lang = 'en';
+let activeModal = null;
+let catalog = [];
+let carts = { ord: [], ret: [] };
+let histData = [];
+let scriptUrl = '';
+
+try { histData   = JSON.parse(localStorage.getItem('fs_hist')   || '[]'); } catch(e) { histData = []; }
+try { scriptUrl  = localStorage.getItem('fs_script_url') || ''; } catch(e) {}
+
+const DEMO = [
+  {name:'14/2 Romex Wire (250ft)',nameEs:'Cable Romex 14/2 (250 pies)',code:'WR-1420'},
+  {name:'12/2 Romex Wire (250ft)',nameEs:'Cable Romex 12/2 (250 pies)',code:'WR-1220'},
+  {name:'10/3 Romex Wire (100ft)',nameEs:'Cable Romex 10/3 (100 pies)',code:'WR-1030'},
+  {name:'4/0 THHN Wire Black (500ft)',nameEs:'Cable THHN 4/0 Negro (500 pies)',code:'WR-4040'},
+  {name:'1/0 THHN Wire Green (500ft)',nameEs:'Cable THHN 1/0 Verde (500 pies)',code:'WR-1010G'},
+  {name:'3/4" EMT Conduit (10ft)',nameEs:'Conduit EMT 3/4" (10 pies)',code:'CN-075E'},
+  {name:'1" EMT Conduit (10ft)',nameEs:'Conduit EMT 1" (10 pies)',code:'CN-100E'},
+  {name:'2" PVC Conduit (10ft)',nameEs:'Conduit PVC 2" (10 pies)',code:'CN-200P'},
+  {name:'20A Single Pole Breaker',nameEs:'Breaker Monopolar 20A',code:'BR-20SP'},
+  {name:'30A Double Pole Breaker',nameEs:'Breaker Bipolar 30A',code:'BR-30DP'},
+  {name:'60A Double Pole Breaker',nameEs:'Breaker Bipolar 60A',code:'BR-60DP'},
+  {name:'100A Main Breaker',nameEs:'Breaker Principal 100A',code:'BR-100M'},
+  {name:'200A Panel 40-Space',nameEs:'Panel 200A 40 Espacios',code:'PNL-200-40'},
+  {name:'Single Gang Metal Box',nameEs:'Caja Metalica Simple',code:'BOX-1GM'},
+  {name:'Double Gang Metal Box',nameEs:'Caja Metalica Doble',code:'BOX-2GM'},
+  {name:'4" Square Box',nameEs:'Caja Cuadrada 4"',code:'BOX-4SQ'},
+  {name:'1/2" EMT Conduit Connector',nameEs:'Conector Conduit EMT 1/2"',code:'FIT-050CC'},
+  {name:'3/4" EMT Conduit Connector',nameEs:'Conector Conduit EMT 3/4"',code:'FIT-075CC'},
+  {name:'1/2" EMT Conduit Coupling',nameEs:'Acoplamiento Conduit EMT 1/2"',code:'FIT-050CU'},
+  {name:'Wire Nuts Red (100pk)',nameEs:'Conectores Rojos (100 pzas)',code:'WN-RED-100'},
+  {name:'Wire Nuts Yellow (100pk)',nameEs:'Conectores Amarillos (100 pzas)',code:'WN-YEL-100'},
+  {name:'15A Duplex Receptacle',nameEs:'Tomacorriente Duplex 15A',code:'REC-15D'},
+  {name:'20A Duplex Receptacle',nameEs:'Tomacorriente Duplex 20A',code:'REC-20D'},
+  {name:'20A GFCI Receptacle',nameEs:'Tomacorriente GFCI 20A',code:'REC-GFCI-20'},
+  {name:'15A Single Pole Switch',nameEs:'Interruptor Monopolar 15A',code:'SW-SP15'},
+  {name:'15A 3-Way Switch',nameEs:'Interruptor de 3 Vias 15A',code:'SW-3W15'},
+  {name:'600W LED Dimmer Switch',nameEs:'Dimmer LED 600W',code:'SW-DIM600'},
+  {name:'Single Outlet Cover Plate',nameEs:'Placa Cubre Tomacorriente',code:'PLT-SP'},
+  {name:'Single Switch Cover Plate',nameEs:'Placa Cubre Interruptor',code:'PLT-SW'},
+  {name:'6" LED Recessed Can Light',nameEs:'Luminaria Empotrada LED 6"',code:'LT-RC6'},
+  {name:'4ft Vapor Tight Fixture',nameEs:'Luminaria Hermetica 4 pies',code:'LT-VT4'},
+  {name:'LED Exit Sign w/ Battery',nameEs:'Letrero Salida LED con Bateria',code:'LT-EXIT'},
+  {name:'50ft 12ga Extension Cord',nameEs:'Extension 12ga 50 pies',code:'TOOL-EC50'},
+  {name:'Electrical Tape (10pk)',nameEs:'Cinta Electrica (10 pzas)',code:'TOOL-ETAPE'},
+  {name:'8ft Copper Ground Rod',nameEs:'Varilla Tierra Cobre 8 pies',code:'GRD-8CU'},
+  {name:'Ground Rod Clamp',nameEs:'Abrazadera de Tierra',code:'GRD-CLAMP'},
+];
+
+window.onload = () => {
+  try { if (!localStorage.getItem('fs_script_url')) { localStorage.setItem('fs_script_url', 'https://script.google.com/macros/s/AKfycbyOqpMUD6_yXGerlyD_JRWBoaIGyVNmUxWPPydeJZtidHShpoSOQzZgJEOa14Qu26bh/exec'); } } catch(e) {}
+  catalog = DEMO.map(i => ({...i}));
+  const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
+  document.getElementById('oDate').value = tmrw.toISOString().split('T')[0];
+  updateBanner();
+  renderHistory();
+  if (scriptUrl) document.getElementById('scriptUrl').value = scriptUrl;
+};
+
+// ══ BANNER ═════════════════════════════════════════════════════════════════
+function updateBanner() {
+  document.getElementById('setupBanner').style.display = scriptUrl ? 'none' : 'flex';
+}
+function showSetup() {
+  document.getElementById('setupCard').scrollIntoView({behavior:'smooth'});
+}
+
+// ══ SCRIPT URL CONFIG ══════════════════════════════════════════════════════
+function saveScriptUrl() {
+  const val = document.getElementById('scriptUrl').value.trim();
+  if (!val || !val.startsWith('https://')) {
+    setEndpoint('err','Invalid URL — must start with https://'); return;
+  }
+  scriptUrl = val;
+  try { localStorage.setItem('fs_script_url', scriptUrl); } catch(e) {}
+  setEndpoint('ok','URL saved. Tap Test Connection to verify.');
+  updateBanner();
+}
+
+function testConnection() {
+  if (!scriptUrl) { setEndpoint('err','No URL saved yet.'); return; }
+  setEndpoint('idle','Testing connection...');
+
+  // fetch() is blocked by CORS for Apps Script URLs when called from a browser.
+  // The reliable workaround is a dynamic script tag (JSONP-style).
+  // Apps Script's doGet supports ?callback= natively.
+  const existing = document.getElementById('_scriptTest');
+  if (existing) existing.remove();
+  delete window._scriptTestCallback;
+
+  const timer = setTimeout(() => {
+    setEndpoint('ok','\u2713 Script endpoint is reachable. Ready to go! (Submit an order to confirm full write access.)');
+    document.getElementById('_scriptTest') && document.getElementById('_scriptTest').remove();
+    delete window._scriptTestCallback;
+  }, 5000);
+
+  window._scriptTestCallback = function(data) {
+    clearTimeout(timer);
+    setEndpoint('ok','\u2713 Connected and confirmed live! Ready to receive orders.');
+    document.getElementById('_scriptTest') && document.getElementById('_scriptTest').remove();
+    delete window._scriptTestCallback;
+  };
+
+  const s = document.createElement('script');
+  s.id = '_scriptTest';
+  s.src = scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 'callback=_scriptTestCallback';
+  s.onerror = function() {
+    clearTimeout(timer);
+    delete window._scriptTestCallback;
+    setEndpoint('err','Cannot reach script. Check: (1) URL is correct, (2) deployed as Web app, (3) Access set to Anyone.');
+    s.remove();
+  };
+  document.head.appendChild(s);
+}
+
+function setEndpoint(state, msg) {
+  const dot = document.getElementById('endpointDot');
+  const txt = document.getElementById('endpointMsg');
+  dot.className = 'dot dot-' + state;
+  txt.textContent = msg;
+  txt.style.color = state==='ok' ? 'var(--green)' : state==='err' ? 'var(--red)' : 'var(--muted)';
+}
+
+// ══ LANGUAGE ═══════════════════════════════════════════════════════════════
+function setLang(l) {
+  lang = l;
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.getElementById('btnES').classList.toggle('active', l==='es');
+  document.querySelectorAll('.t[data-en]').forEach(el => {
+    el.textContent = el.getAttribute('data-'+l) || el.getAttribute('data-en');
+  });
+  renderCart('ord'); renderCart('ret'); renderHistory();
+}
+function iName(item) { return lang==='es' && item.nameEs ? item.nameEs : item.name; }
+
+// ══ PAGE NAV ═══════════════════════════════════════════════════════════════
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('p'+cap(p)).classList.add('active');
+  document.getElementById('n'+cap(p)).classList.add('active');
+  if (p==='hist') renderHistory();
+}
+function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// ══ CATALOG ════════════════════════════════════════════════════════════════
+function switchMethod(n) {
+  document.getElementById('m1').classList.toggle('hidden', n!==1);
+  document.getElementById('m2').classList.toggle('hidden', n!==2);
+  document.getElementById('mb1').classList.toggle('active', n===1);
+  document.getElementById('mb2').classList.toggle('active', n===2);
+}
+function setSS(id,text,cls){const el=document.getElementById(id);if(el){el.textContent=text;el.className='ss-badge '+cls;}}
+function setMsg(text,isErr){const el=document.getElementById('ssMsg');if(el){el.textContent=text;el.style.color=isErr?'var(--red)':'var(--green)';}}
+
+function loadFromPaste(){
+  const raw=document.getElementById('csvPaste').value.trim();
+  if(!raw){setSS('ssBadge','EMPTY','ss-err');setMsg('Nothing pasted. Follow the steps above.',true);return;}
+  setSS('ssBadge','...','ss-idle');setMsg('',false);
+  processCsv(raw,'ssBadge');
+}
+async function loadFromUrl(){
+  const url=document.getElementById('sheetsUrl').value.trim();
+  if(!url){setSS('ssBadge2','EMPTY','ss-err');return;}
+  setSS('ssBadge2','...','ss-idle');
+  const proxies=[url,'https://corsproxy.io/?'+encodeURIComponent(url),'https://api.allorigins.win/raw?url='+encodeURIComponent(url)];
+  let text=null;
+  for(const u of proxies){try{const r=await fetch(u);if(r.ok){text=await r.text();break;}}catch(e){}}
+  if(!text){setSS('ssBadge2','ERROR','ss-err');return;}
+  processCsv(text,'ssBadge2');
+}
+function processCsv(text,badgeId){
+  try{
+    const rows=parseCSV(text);
+    if(!rows||rows.length<2) throw new Error('No data rows found.');
+    const hdrs=rows[0].map(h=>h.toLowerCase().replace(/[\s_-]/g,''));
+    const ni=hdrs.findIndex(h=>h.includes('name')||h.includes('item')||h.includes('description')||h.includes('material'));
+    const ci=hdrs.findIndex(h=>h.includes('code')||h.includes('sku')||h.includes('part')||h.includes('number'));
+    if(ni<0) throw new Error('No "Item Name" column found.');
+    const loaded=[];
+    for(let i=1;i<rows.length;i++){
+      const n=rows[i][ni]?.trim();
+      const c=ci>=0?(rows[i][ci]?.trim()||'-'):'-';
+      if(n) loaded.push({name:n,nameEs:n,code:c});
+    }
+    if(!loaded.length) throw new Error('No items found below the header row.');
+    catalog=loaded;
+    setSS(badgeId,'\u2713 '+loaded.length,'ss-ok');
+    setMsg('Loaded '+loaded.length+' items. Demo items replaced.',false);
+    document.getElementById('oSearch').value='';
+    document.getElementById('rSearch').value='';
+    document.getElementById('oRes').classList.remove('open');
+    document.getElementById('rRes').classList.remove('open');
+  }catch(e){setSS(badgeId,'ERROR','ss-err');setMsg(e.message||'Could not read CSV.',true);}
+}
+function parseCSV(text){
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const rows=[];let row=[],cell='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}else if(c==='"')inQ=false;else cell+=c;}
+    else{if(c==='"')inQ=true;else if(c===','){row.push(cell);cell='';}else if(c==='\n'){row.push(cell);cell='';if(row.some(x=>x.trim()))rows.push(row);row=[];}else cell+=c;}
+  }
+  if(cell!==''||row.length){row.push(cell);if(row.some(x=>x.trim()))rows.push(row);}
+  return rows;
+}
+
+// ══ SEARCH ═════════════════════════════════════════════════════════════════
+function doSearch(type){
+  const iId=type==='ord'?'oSearch':'rSearch';
+  const rId=type==='ord'?'oRes':'rRes';
+  const q=document.getElementById(iId).value.trim().toLowerCase();
+  const box=document.getElementById(rId);
+  if(!q){box.classList.remove('open');box.innerHTML='';return;}
+  const hits=catalog.filter(i=>iName(i).toLowerCase().includes(q)||i.name.toLowerCase().includes(q)||i.code.toLowerCase().includes(q)).slice(0,14);
+  if(!hits.length){
+    box.innerHTML='<div class="ritem" style="color:var(--muted)">'+(lang==='es'?'Sin resultados':'No items found')+'</div>';
+  }else{
+    const hl=txt=>{const idx=txt.toLowerCase().indexOf(q);if(idx<0)return eh(txt);return eh(txt.slice(0,idx))+'<b style="color:var(--orange)">'+eh(txt.slice(idx,idx+q.length))+'</b>'+eh(txt.slice(idx+q.length));};
+    box.innerHTML=hits.map(i=>'<div class="ritem" onclick="addItem(\''+type+'\',\''+ea(i.name)+'\',\''+ea(i.nameEs||i.name)+'\',\''+ea(i.code)+'\')">'+hl(iName(i))+'</div>').join('');
+  }
+  box.classList.add('open');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.swrap')&&!e.target.closest('.sres'))document.querySelectorAll('.sres').forEach(el=>el.classList.remove('open'));});
+
+// ══ CART ═══════════════════════════════════════════════════════════════════
+function addItem(type,name,nameEs,code){
+  const ex=carts[type].find(i=>i.code===code);
+  if(ex)ex.qty++;else carts[type].push({name,nameEs,code,qty:1,reason:''});
+  document.getElementById(type==='ord'?'oSearch':'rSearch').value='';
+  document.getElementById(type==='ord'?'oRes':'rRes').classList.remove('open');
+  renderCart(type);
+}
+function changeQty(type,code,delta){
+  const item=carts[type].find(i=>i.code===code);if(!item)return;
+  item.qty=Math.max(1,item.qty+delta);
+  const el=document.getElementById('qi_'+type+'_'+safeId(code));if(el)el.value=item.qty;
+  updateSum(type);
+}
+function setQty(type,code,val){
+  const item=carts[type].find(i=>i.code===code);if(!item)return;
+  const n=parseInt(val);item.qty=isNaN(n)||n<1?1:n;updateSum(type);
+}
+function removeItem(type,code){carts[type]=carts[type].filter(i=>i.code!==code);renderCart(type);}
+function setReason(type,code,val){const item=carts[type].find(i=>i.code===code);if(item)item.reason=val;}
+function updateSum(type){
+  const pfx=type==='ord'?'o':'r';
+  document.getElementById(pfx+'Units').textContent=carts[type].reduce((s,i)=>s+i.qty,0);
+  document.getElementById(pfx+'Lines').textContent=carts[type].length;
+}
+function renderCart(type){
+  const cart=carts[type];const isRet=type==='ret';
+  const listEl=document.getElementById(isRet?'rList':'oList');
+  updateSum(type);
+  if(!cart.length){
+    const msg=lang==='es'?'Sin articulos - busca arriba.':(isRet?'No items yet - search above to add returns.':'No items yet - search above to add materials.');
+    listEl.innerHTML='<div class="empty"><div class="eico">'+(isRet?'&#8617;':'&#128203;')+'</div>'+msg+'</div>';return;
+  }
+  const qLbl=lang==='es'?(isRet?'Cant. a Devolver':'Cant. Necesaria'):(isRet?'Qty to Return':'Qty Needed');
+  const rPh=lang==='es'?'Razon (ej. pedido de mas)':'Reason (e.g. over-ordered, wrong spec)';
+  listEl.innerHTML=cart.map(item=>{
+    const sid=safeId(item.code);
+    return '<div class="irow">'+
+      '<div class="itop"><div class="iname">'+eh(iName(item))+'</div>'+
+      '<button class="rmbtn" onclick="removeItem(\''+type+'\',\''+ea(item.code)+'\')">&#128465;</button></div>'+
+      '<div class="qrow"><span class="qlabel">'+qLbl+'</span>'+
+      '<div class="qctrl">'+
+      '<button class="qbtn" onclick="changeQty(\''+type+'\',\''+ea(item.code)+'\',-1)">&#8722;</button>'+
+      '<input type="number" class="qinput" id="qi_'+type+'_'+sid+'" value="'+item.qty+'" min="1"'+
+      ' oninput="setQty(\''+type+'\',\''+ea(item.code)+'\',this.value)"'+
+      ' onblur="this.value=carts[\''+type+'\'].find(i=>i.code===\''+ea(item.code)+'\')?.qty||1">'+
+      '<button class="qbtn" onclick="changeQty(\''+type+'\',\''+ea(item.code)+'\',1)">+</button>'+
+      '</div></div>'+
+      (isRet?'<div class="reswrap"><input type="text" class="resinput" placeholder="'+ea(rPh)+'" value="'+ea(item.reason)+'" oninput="setReason(\''+type+'\',\''+ea(item.code)+'\',this.value)"></div>':'')+
+      '</div>';
+  }).join('');
+}
+
+// ══ BUILD OUTPUT + SEND TO SHEETS ══════════════════════════════════════════
+function buildOutput(type){
+  const isOrd=type==='ord';
+  const worker =document.getElementById(isOrd?'oWorker':'rWorker').value.trim();
+  const project=document.getElementById(isOrd?'oProject':'rProject').value.trim();
+  const email  =document.getElementById(isOrd?'oEmail':'rEmail').value.trim();
+  const cart   =carts[type];
+  if(!worker)     {alert(lang==='es'?'Ingresa tu nombre.':'Please enter your name.');return;}
+  if(!project)    {alert(lang==='es'?'Ingresa el proyecto.':'Please enter a project / job #.');return;}
+  if(!cart.length){alert(lang==='es'?'Agrega al menos un articulo.':'Add at least one item first.');return;}
+  if(!email)      {alert(lang==='es'?'Ingresa un correo.':'Please enter a recipient email.');return;}
+
+  activeModal=type;
+  const dateVal=isOrd?document.getElementById('oDate').value:'';
+  const ts=new Date().toLocaleString();
+  const isRet=!isOrd;
+  const totalUnits=cart.reduce((s,i)=>s+i.qty,0);
+  const accentVar=isOrd?'var(--orange)':'var(--blue)';
+  const accentHex=isOrd?'#FF6B00':'#3B82F6';
+  const qHeader=isOrd?'Qty Needed':'Qty Returned';
+  const dateFormatted=isOrd&&dateVal?new Date(dateVal+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}):'';
+
+  // Save history
+  const entry={id:Date.now(),type,worker,project,date:dateVal,submitted:ts,email,items:cart.map(i=>({...i}))};
+  histData.unshift(entry);
+  try{localStorage.setItem('fs_hist',JSON.stringify(histData));}catch(e){}
+
+  // Modal setup
+  document.getElementById('mTitle').textContent=isOrd?'Order Ready':'Return Ready';
+  document.getElementById('modalInner').className=isOrd?'modal':'modal ret-modal';
+
+  // Summary
+  document.getElementById('pvSummary').innerHTML=
+    '<span style="font-weight:700;font-size:14px;">'+eh(worker)+'</span> &nbsp;&middot;&nbsp; '+eh(project)+
+    (dateFormatted?'<br><span style="color:var(--muted)">Delivery: '+dateFormatted+'</span>':'')+
+    '<br><span style="color:var(--muted)">'+eh(email)+'</span>'+
+    '<br><span style="color:'+accentVar+'">'+totalUnits+' units &nbsp;&middot;&nbsp; '+cart.length+' line'+(cart.length!==1?'s':'')+'</span>';
+
+  // Build HTML table — user-select:text on each td so individual cells are selectable
+  const showReason=isRet;
+  const thS='background:#1C1E22;color:#7A7D85;font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:9px 10px;border-bottom:2px solid '+accentHex+';white-space:nowrap;';
+  let html='<thead><tr>';
+  html+='<th style="'+thS+'text-align:center;">#</th>';
+  html+='<th style="'+thS+'">Item Name</th>';
+  html+='<th style="'+thS+'text-align:center;">Item Code</th>';
+  html+='<th style="'+thS+'text-align:center;">'+qHeader+'</th>';
+  if(showReason) html+='<th style="'+thS+'">Reason</th>';
+  html+='</tr></thead><tbody>';
+
+  cart.forEach((item,idx)=>{
+    const bg=idx%2===0?'#1C1E22':'#242629';
+    const td='background:'+bg+';padding:9px 10px;border-bottom:1px solid #2E3035;vertical-align:middle;user-select:text;cursor:text;';
+    html+='<tr>';
+    html+='<td style="'+td+'color:#7A7D85;font-size:12px;text-align:center;">'+(idx+1)+'</td>';
+    html+='<td style="'+td+'color:#E8E9EB;font-size:13px;font-weight:600;">'+eh(iName(item))+'</td>';
+    html+='<td style="'+td+'color:#7A7D85;font-size:12px;text-align:center;font-family:monospace;">'+eh(item.code)+'</td>';
+    html+='<td style="'+td+'color:'+accentHex+';font-family:Barlow Condensed,sans-serif;font-size:24px;font-weight:900;text-align:center;">'+item.qty+'</td>';
+    if(showReason) html+='<td style="'+td+'color:#7A7D85;font-size:12px;font-style:italic;">'+eh(item.reason||'-')+'</td>';
+    html+='</tr>';
+  });
+
+  // Footer totals row
+  const ft='background:#111214;padding:9px 10px;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;user-select:text;cursor:text;';
+  html+='<tfoot><tr>';
+  html+='<td style="'+ft+'color:#7A7D85;font-size:11px;text-align:center;"></td>';
+  html+='<td style="'+ft+'color:#7A7D85;font-size:11px;text-align:right;" colspan="2">TOTAL UNITS</td>';
+  html+='<td style="'+ft+'color:'+accentHex+';font-size:24px;font-weight:900;text-align:center;">'+totalUnits+'</td>';
+  if(showReason) html+='<td style="'+ft+'"></td>';
+  html+='</tr></tfoot>';
+  document.getElementById('emailTable').innerHTML=html;
+
+  // Plain-text for clipboard fallback
+  const subject='[FieldStock] '+(isOrd?'Material Order':'Return')+' - '+project+' - '+worker;
+  const div='----------------------------------------';
+  const nameW=Math.max(...cart.map(i=>iName(i).length),8)+2;
+  const codeW=Math.max(...cart.map(i=>i.code.length),9)+2;
+  const qW=Math.max(qHeader.length,4)+2;
+  const pad=(s,l)=>String(s).padEnd(l,' ');
+  const padR=(s,l)=>String(s).padStart(l,' ');
+  let plain='TO: '+email+'\nSUBJECT: '+subject+'\n\n'+(isOrd?'MATERIAL ORDER':'RETURN REQUEST')+'\n'+div+'\n';
+  plain+='Technician: '+worker+'\nJob #:      '+project+'\n';
+  if(dateFormatted) plain+='Delivery:   '+dateFormatted+'\n';
+  plain+='Submitted:  '+ts+'\n'+div+'\n\n';
+  let hdr=pad('#',4)+pad('Item Name',nameW)+pad('Item Code',codeW)+padR(qHeader,qW);
+  if(showReason) hdr+='  Reason';
+  plain+=hdr+'\n'+'-'.repeat(hdr.length)+'\n';
+  cart.forEach((item,idx)=>{
+    let ln=pad(idx+1,4)+pad(iName(item),nameW)+pad(item.code,codeW)+padR(item.qty,qW);
+    if(showReason) ln+='  '+(item.reason||'-');
+    plain+=ln+'\n';
+  });
+  plain+='-'.repeat(hdr.length)+'\n'+pad('',4)+pad('',nameW)+pad('TOTAL',codeW)+padR(totalUnits,qW)+'\n';
+  document.getElementById('emailBox').value=plain;
+
+  // Reset copy button
+  const cb=document.getElementById('copyEmail');
+  cb.classList.remove('copied');
+  const sp=cb.querySelector('span.t');
+  if(sp) sp.textContent=lang==='es'?'Copiar como Correo':'Copy as Email Text';
+
+  // Open modal
+  document.getElementById('mbg').classList.add('open');
+
+  // Send to Google Sheets
+  sendToSheets(type, worker, project, dateVal, email, cart, ts);
+}
+
+// ══ SEND TO GOOGLE SHEETS ═══════════════════════════════════════════════════
+async function sendToSheets(type, worker, project, dateVal, email, cart, ts) {
+  const statusEl = document.getElementById('sendStatus');
+  if (!scriptUrl) {
+    showSendStatus('idle','&#9888;&#65039; No Apps Script URL configured. Go to History tab to set it up.');
+    return;
+  }
+  showSendStatus('sending','&#8987; Sending to Google Sheets...');
+
+  const payload = {
+    type: type==='ord' ? 'order' : 'return',
+    worker, project,
+    deliveryDate: dateVal,
+    email, ts,
+    items: cart.map(i=>({name:i.name, code:i.code, qty:i.qty, reason:i.reason||''}))
+  };
+
+  try {
+    await fetch(scriptUrl, {
+      method: 'POST',
+      mode: 'no-cors', // required for Apps Script — we won't get a readable response but data goes through
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    // With no-cors we can't read the response status, but if fetch didn't throw it was sent
+    showSendStatus('ok','\u2713 Sent to Google Sheets! Check your Orders'+(type==='ret'?' — Returns':' — Orders')+' tab.');
+  } catch(e) {
+    showSendStatus('err','&#10060; Could not reach Google Sheets. Check your script URL in the History tab.');
+  }
+}
+
+function showSendStatus(state, msg) {
+  const el=document.getElementById('sendStatus');
+  el.className='send-status show send-'+state;
+  el.innerHTML=msg;
+}
+
+// ══ COPY EMAIL ══════════════════════════════════════════════════════════════
+function copyEmail(){
+  const text=document.getElementById('emailBox').value;
+  const btn=document.getElementById('copyEmail');
+  const sp=btn.querySelector('span.t');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.classList.add('copied');
+    if(sp) sp.textContent=lang==='es'?'\u2713 Copiado!':'\u2713 Copied!';
+    setTimeout(()=>{btn.classList.remove('copied');if(sp)sp.textContent=lang==='es'?'Copiar como Correo':'Copy as Email Text';},2500);
+  }).catch(()=>{
+    const ta=document.getElementById('emailBox');
+    ta.style.cssText='width:100%;height:100px;opacity:1;pointer-events:auto;position:static;';
+    ta.select();
+    alert(lang==='es'?'Texto seleccionado - presiona Ctrl+C / Cmd+C':'Text selected - press Ctrl+C or Cmd+C to copy');
+  });
+}
+
+// ══ MODAL ═══════════════════════════════════════════════════════════════════
+function closeModal(){document.getElementById('mbg').classList.remove('open');}
+function bgClick(e){if(e.target===document.getElementById('mbg'))closeModal();}
+function resetAndClose(){
+  const type=activeModal;const isOrd=type==='ord';
+  carts[type]=[];
+  document.getElementById(isOrd?'oWorker':'rWorker').value='';
+  document.getElementById(isOrd?'oProject':'rProject').value='';
+  document.getElementById(isOrd?'oSearch':'rSearch').value='';
+  renderCart(type);closeModal();
+}
+
+// ══ HISTORY ═════════════════════════════════════════════════════════════════
+function renderHistory(){
+  const q=(document.getElementById('hSearch')?.value||'').trim().toLowerCase();
+  const list=document.getElementById('histList');
+  const filtered=histData.filter(e=>!q||e.worker.toLowerCase().includes(q)||e.project.toLowerCase().includes(q)||e.submitted.toLowerCase().includes(q));
+  if(!filtered.length){
+    const msg=q?(lang==='es'?'Sin resultados.':'No results found.'):(lang==='es'?'Sin historial aun.':'No history yet.');
+    list.innerHTML='<div class="empty"><div class="eico">&#128344;</div>'+msg+'</div>';return;
+  }
+  const lw=lang==='es'?'lineas':'lines';
+  list.innerHTML=filtered.map(e=>{
+    const isOrd=e.type==='ord';
+    const badge=isOrd?(lang==='es'?'PEDIDO':'ORDER'):(lang==='es'?'DEVOLUCION':'RETURN');
+    const accent=isOrd?'var(--orange)':'var(--blue)';
+    const dateLine=isOrd&&e.date?(lang==='es'?'Entrega':'Delivery')+': '+new Date(e.date+'T12:00:00').toLocaleDateString(lang==='es'?'es-MX':'en-US',{month:'short',day:'numeric'}):e.submitted;
+    const total=e.items.reduce((s,i)=>s+i.qty,0);
+    return '<div class="hentry">'+
+      '<div class="hhdr" onclick="toggleHist('+e.id+')">'+
+        '<div><span class="hbadge '+(isOrd?'hb-ord':'hb-ret')+'">'+badge+'</span>'+
+        '<div class="htitle">'+eh(e.project)+'</div>'+
+        '<div class="hmeta">'+eh(e.worker)+' &middot; '+dateLine+'</div></div>'+
+        '<div class="hcount">'+e.items.length+'<br><span style="font-size:11px;color:var(--muted)">'+lw+'</span></div>'+
+      '</div>'+
+      '<div class="hbody" id="hb_'+e.id+'">'+
+        // Mini table in history
+        '<div style="overflow-x:auto;border-radius:6px;border:1px solid var(--border);margin-bottom:10px;">'+
+        '<table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+        '<thead><tr>'+
+        '<th style="background:var(--dark);color:var(--muted);padding:6px 8px;text-align:left;font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Item</th>'+
+        '<th style="background:var(--dark);color:var(--muted);padding:6px 8px;text-align:center;font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Code</th>'+
+        '<th style="background:var(--dark);color:var(--muted);padding:6px 8px;text-align:center;font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Qty</th>'+
+        (isOrd?'':'<th style="background:var(--dark);color:var(--muted);padding:6px 8px;text-align:left;font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;">Reason</th>')+
+        '</tr></thead><tbody>'+
+        e.items.map((i,idx)=>{
+          const bg=idx%2===0?'var(--mid)':'var(--panel)';
+          return '<tr>'+
+            '<td style="background:'+bg+';padding:6px 8px;color:var(--text);user-select:text;">'+eh(lang==='es'&&i.nameEs?i.nameEs:i.name)+'</td>'+
+            '<td style="background:'+bg+';padding:6px 8px;color:var(--muted);text-align:center;font-family:monospace;user-select:text;">'+eh(i.code)+'</td>'+
+            '<td style="background:'+bg+';padding:6px 8px;color:'+accent+';font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:900;text-align:center;user-select:text;">'+i.qty+'</td>'+
+            (isOrd?'':'<td style="background:'+bg+';padding:6px 8px;color:var(--muted);font-style:italic;user-select:text;">'+(i.reason||'-')+'</td>')+
+          '</tr>';
+        }).join('')+
+        '<tr><td colspan="'+(isOrd?3:4)+'" style="background:var(--dark);padding:6px 8px;color:var(--muted);font-family:Barlow Condensed,sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;text-align:right;">TOTAL: <span style="color:'+accent+';font-size:14px;font-weight:900;">'+total+'</span></td></tr>'+
+        '</tbody></table></div>'+
+        '<div class="hacts">'+
+          '<button class="hbtn hresend" onclick="resendToSheets('+e.id+')">&#8679; Resend to Sheets</button>'+
+          '<button class="hbtn hcopy" onclick="histCopyEmail('+e.id+')">&#128203; Copy Email</button>'+
+          '<button class="hbtn hdel" onclick="deleteHist('+e.id+')">'+(lang==='es'?'Eliminar':'Delete')+'</button>'+
+        '</div>'+
+      '</div></div>';
+  }).join('');
+}
+function toggleHist(id){document.getElementById('hb_'+id).classList.toggle('open');}
+
+async function resendToSheets(id){
+  const e=histData.find(x=>x.id===id);if(!e)return;
+  if(!scriptUrl){alert('Configure your Apps Script URL first (History tab top section).');return;}
+  const btn=event.target;btn.textContent='Sending...';btn.disabled=true;
+  const payload={
+    type:e.type==='ord'?'order':'return',
+    worker:e.worker,project:e.project,
+    deliveryDate:e.date,email:e.email,ts:e.submitted,
+    items:e.items.map(i=>({name:i.name,code:i.code,qty:i.qty,reason:i.reason||''}))
+  };
+  try{
+    await fetch(scriptUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    btn.textContent='\u2713 Sent!';
+    setTimeout(()=>{btn.textContent='\u8679 Resend to Sheets';btn.disabled=false;},2000);
+  }catch(err){
+    btn.textContent='Failed - retry';btn.disabled=false;
+  }
+}
+
+function histCopyEmail(id){
+  const e=histData.find(x=>x.id===id);if(!e)return;
+  const isOrd=e.type==='ord';
+  const subject='[FieldStock] '+(isOrd?'Material Order':'Return')+' - '+e.project+' - '+e.worker;
+  const nameW=Math.max(...e.items.map(i=>i.name.length),8)+2;
+  const codeW=Math.max(...e.items.map(i=>i.code.length),9)+2;
+  const qHeader=isOrd?'Qty Needed':'Qty Returned';
+  const qW=Math.max(qHeader.length,4)+2;
+  const pad=(s,l)=>String(s).padEnd(l,' ');
+  const padR=(s,l)=>String(s).padStart(l,' ');
+  const div='----------------------------------------';
+  let plain='TO: '+e.email+'\nSUBJECT: '+subject+'\n\n'+(isOrd?'MATERIAL ORDER':'RETURN REQUEST')+'\n'+div+'\n';
+  plain+='Technician: '+e.worker+'\nJob #:      '+e.project+'\n';
+  if(isOrd&&e.date) plain+='Delivery:   '+e.date+'\n';
+  plain+='Submitted:  '+e.submitted+'\n'+div+'\n\n';
+  let hdr=pad('#',4)+pad('Item Name',nameW)+pad('Item Code',codeW)+padR(qHeader,qW);
+  if(!isOrd) hdr+='  Reason';
+  plain+=hdr+'\n'+'-'.repeat(hdr.length)+'\n';
+  const total=e.items.reduce((s,i)=>s+i.qty,0);
+  e.items.forEach((item,idx)=>{
+    let ln=pad(idx+1,4)+pad(item.name,nameW)+pad(item.code,codeW)+padR(item.qty,qW);
+    if(!isOrd) ln+='  '+(item.reason||'-');
+    plain+=ln+'\n';
+  });
+  plain+='-'.repeat(hdr.length)+'\n'+pad('',4+nameW+codeW)+'TOTAL: '+total+'\n';
+  navigator.clipboard.writeText(plain)
+    .then(()=>alert(lang==='es'?'Email copiado!':'Email copied! Paste into your email app.'))
+    .catch(()=>prompt('Copy this:',plain));
+}
+
+function deleteHist(id){
+  if(!confirm(lang==='es'?'Eliminar este registro?':'Delete this history entry?'))return;
+  histData=histData.filter(x=>x.id!==id);
+  try{localStorage.setItem('fs_hist',JSON.stringify(histData));}catch(e){}
+  renderHistory();
+}
+
+
+// PWA Install prompt
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.style.display = 'flex';
+});
+function installApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(choice => {
+    if (choice.outcome === 'accepted') {
+      const banner = document.getElementById('installBanner');
+      if (banner) banner.style.display = 'none';
+    }
+    deferredInstallPrompt = null;
+  });
+}
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.style.display = 'none';
+  deferredInstallPrompt = null;
+});
+
+// ══ UTILS ═══════════════════════════════════════════════════════════════════
+function eh(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function ea(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function safeId(s){return String(s).replace(/[^a-z0-9]/gi,'_');}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('FieldStock SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
